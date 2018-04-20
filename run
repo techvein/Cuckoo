@@ -6,7 +6,7 @@ FILE_PATH="$SCRIPT_PATH/$FILE_NAME"
 GREP_OPTIONS=""
 
 function perform_curl {
-  curl -Lo ${FILE_NAME} `curl "$1" | grep -oe '"browser_download_url":\s*"[^" ]*"' | grep -oe 'http[^" ]*' | grep ${FILE_NAME} | head -1`
+  curl -Lo "${FILE_NAME}" `curl "$1" | grep -oe '"browser_download_url":\s*"[^" ]*"' | grep -oe 'http[^" ]*' | grep "${FILE_NAME}" | head -1`
 }
 
 function download_generator {
@@ -22,7 +22,7 @@ function download_generator {
     echo "Downloading version $VERSION..."
     perform_curl "https://api.github.com/repos/Brightify/Cuckoo/releases/tags/$VERSION"
   fi
-  chmod +x ${FILE_NAME}
+  chmod +x "${FILE_NAME}"
 }
 
 if [[ ! -e "$FILE_PATH" ]]; then
