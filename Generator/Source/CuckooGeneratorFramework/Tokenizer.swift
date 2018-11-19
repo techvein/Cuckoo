@@ -85,6 +85,7 @@ public struct Tokenizer {
             let subtokens = tokenize(dictionary[Key.Substructure.rawValue] as? [SourceKitRepresentable] ?? [])
             let initializers = subtokens.only(Initializer.self)
             let children = subtokens.noneOf(Initializer.self)
+            let genericParameters = subtokens.only(GenericParameter.self)
 
             return ProtocolDeclaration(
                 name: name,
@@ -95,7 +96,8 @@ public struct Tokenizer {
                 initializers: initializers,
                 children: children,
                 inheritedTypes: tokenizedInheritedTypes,
-                attributes: attributes)
+                attributes: attributes,
+                genericParameters: genericParameters)
 
         case Kinds.ClassDeclaration.rawValue:
             guard !attributes.map({ $0.kind }).contains(.final) else {
@@ -115,6 +117,7 @@ public struct Tokenizer {
                     return child
                 }
             }
+            let genericParameters = subtokens.only(GenericParameter.self)
 
             return ClassDeclaration(
                 name: name,
@@ -125,18 +128,19 @@ public struct Tokenizer {
                 initializers: initializers,
                 children: children,
                 inheritedTypes: tokenizedInheritedTypes,
-                attributes: attributes)
+                attributes: attributes,
+                genericParameters: genericParameters)
 
         case Kinds.ExtensionDeclaration.rawValue:
             return ExtensionDeclaration(range: range!)
 
         case Kinds.InstanceVariable.rawValue:
             let setterAccessibility = (dictionary[Key.SetterAccessibility.rawValue] as? String).flatMap(Accessibility.init)
-                        
+
             if String(source.utf8.dropFirst(range!.startIndex))?.takeUntil(occurence: name)?.trimmed.hasPrefix("let") == true {
                 return nil
             }
-            
+
             if type == nil {
                 stderrPrint("Type of instance variable \(name) could not be inferred. Please specify it explicitly. (\(file.path ?? ""))")
             }
@@ -194,6 +198,12 @@ public struct Tokenizer {
                     attributes: attributes)
             }
 
+        case Kinds.GenericParameter.rawValue:
+            return tokenize(parameterLabel: nil, parameter: representable)
+
+        case Kinds.AssociatedType.rawValue:
+            return nil
+
         default:
             // Do not log anything, until the parser contains all known cases.
             // stderrPrint("Unknown kind. Dictionary: \(dictionary) \(file.path ?? "")")
@@ -216,12 +226,12 @@ public struct Tokenizer {
             return kind == Kinds.MethodParameter.rawValue
         }
 
-        return zip(parameterLabels, filteredParameters).compactMap(tokenize)
+        return zip(parameterLabels, filteredParameters).compactMap { tokenize(parameterLabel: $0, parameter: $1) as? MethodParameter }
     }
 
-    private func tokenize(parameterLabel: String?, parameter: SourceKitRepresentable) -> MethodParameter? {
+    private func tokenize(parameterLabel: String?, parameter: SourceKitRepresentable) -> Token? {
         guard let dictionary = parameter as? [String: SourceKitRepresentable] else { return nil }
-        
+
         let name = dictionary[Key.Name.rawValue] as? String ?? Tokenizer.nameNotSet
         let kind = dictionary[Key.Kind.rawValue] as? String ?? Tokenizer.unknownType
         let range = extractRange(from: dictionary, offset: .Offset, length: .Length)
@@ -231,6 +241,17 @@ public struct Tokenizer {
         switch kind {
         case Kinds.MethodParameter.rawValue:
             return MethodParameter(label: parameterLabel, name: name, type: type!, range: range!, nameRange: nameRange!)
+
+        case Kinds.GenericParameter.rawValue:
+            let inheritedTypeElement = (dictionary[Key.InheritedTypes.rawValue] as? [SourceKitRepresentable] ?? []).first
+            let inheritedType = (inheritedTypeElement as? [String: SourceKitRepresentable] ?? [:])[Key.Name.rawValue] as? String
+            let inheritanceDeclaration: InheritanceDeclaration?
+            if let inheritedType = inheritedType {
+                inheritanceDeclaration = .init(name: inheritedType)
+            } else {
+                inheritanceDeclaration = nil
+            }
+            return GenericParameter(name: name, range: range!, inheritedType: inheritanceDeclaration)
 
         default:
             stderrPrint("Unknown method parameter. Dictionary: \(dictionary) \(file.path ?? "")")

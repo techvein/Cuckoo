@@ -17,6 +17,7 @@ public struct ProtocolDeclaration: ContainerToken {
     public let implementation: Bool = false
     public let inheritedTypes: [InheritanceDeclaration]
     public let attributes: [Attribute]
+    public let genericParameters: [GenericParameter]
 
     public func replace(children tokens: [Token]) -> ProtocolDeclaration {
         return ProtocolDeclaration(
@@ -28,7 +29,8 @@ public struct ProtocolDeclaration: ContainerToken {
             initializers: self.initializers,
             children: tokens,
             inheritedTypes: self.inheritedTypes,
-            attributes: self.attributes)
+            attributes: self.attributes,
+            genericParameters: self.genericParameters)
     }
 
     public func isEqual(to other: Token) -> Bool {
