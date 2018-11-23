@@ -17,7 +17,8 @@ public struct ClassDeclaration: ContainerToken {
     public let implementation: Bool = true
     public let inheritedTypes: [InheritanceDeclaration]
     public let attributes: [Attribute]
-    
+    public let genericParameters: [GenericParameter]
+
     public var hasNoArgInit: Bool {
         return initializers.filter { $0.parameters.isEmpty }.isEmpty
     }
@@ -32,7 +33,8 @@ public struct ClassDeclaration: ContainerToken {
             initializers: self.initializers,
             children: tokens,
             inheritedTypes: self.inheritedTypes,
-            attributes: self.attributes)
+            attributes: self.attributes,
+            genericParameters: self.genericParameters)
     }
 
     public func isEqual(to other: Token) -> Bool {
