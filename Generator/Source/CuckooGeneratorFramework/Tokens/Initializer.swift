@@ -16,6 +16,8 @@ public struct Initializer: Method {
     public let isOverriding: Bool
     public let required: Bool
     public let attributes: [Attribute]
+    public let genericParameters: [GenericParameter]
+    public let whereConstraints: [String]
 
     public var isOptional: Bool {
         return false

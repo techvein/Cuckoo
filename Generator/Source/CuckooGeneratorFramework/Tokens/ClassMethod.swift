@@ -15,6 +15,9 @@ public struct ClassMethod: Method {
     public let parameters: [MethodParameter]
     public let bodyRange: CountableRange<Int>
     public let attributes: [Attribute]
+    public let genericParameters: [GenericParameter]
+    public let whereConstraints: [String]
+
     public var isOptional: Bool {
         return false
     }

@@ -17,6 +17,8 @@ public protocol Method: Token {
     var isOverriding: Bool { get }
     var hasClosureParams: Bool { get }
     var attributes: [Attribute] { get }
+    var genericParameters: [GenericParameter] { get }
+    var whereConstraints: [String] { get }
 }
 
 public extension Method {
@@ -100,7 +102,11 @@ public extension Method {
             }
         }.joined(separator: ", ")
 
+        let genericParametersString = genericParameters.map { $0.description }.joined(separator: ", ")
+        let isGeneric = !genericParameters.isEmpty
+
         return [
+            "self": self,
             "name": rawName,
             "accessibility": accessibility.sourceName,
             "returnSignature": returnSignature,
@@ -121,6 +127,8 @@ public extension Method {
             "isOptional": isOptional,
             "hasClosureParams": hasClosureParams,
             "attributes": attributes.filter { $0.isSupported },
+            "genericParameters": isGeneric ? "<\(genericParametersString)>" : "",
+            "whereClause": whereConstraints.isEmpty ? "" : "where \(whereConstraints.joined(separator: ", "))"
         ]
     }
 }

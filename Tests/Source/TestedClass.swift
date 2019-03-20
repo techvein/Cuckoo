@@ -200,3 +200,13 @@ class ClassUsingInnerEnum {
 final class FinalClass {
     var shouldBeIgnoredByCuckoo = true
 }
+
+protocol GenericFunctionProtocol {
+    func method<T>(param: T)
+}
+
+class GenericFunctionClass {
+    func method<T>(param: T) where T: CustomStringConvertible {
+        
+    }
+}

@@ -14,6 +14,8 @@ public struct ProtocolMethod: Method {
     public let nameRange: CountableRange<Int>
     public let parameters: [MethodParameter]
     public let attributes: [Attribute]
+    public let genericParameters: [GenericParameter]
+    public let whereConstraints: [String]
     
     public var isOptional: Bool {
         return attributes.map { $0.kind }.contains(.optional)
