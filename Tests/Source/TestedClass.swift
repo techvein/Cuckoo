@@ -236,3 +236,33 @@ class InoutMethod {
 
     }
 }
+
+class ClosureNClass {
+    func f1(closure: (String) -> String) {
+
+    }
+
+    func f2(closure: (String, Int) -> Int) {
+
+    }
+
+    func f3(closure: (String, Int, Bool) -> Bool) {
+
+    }
+
+    func f4(closure: (String, Int, Bool, [String]?) -> [String]?) {
+
+    }
+
+    func f5(closure: (String, Int, Bool, [String]?, Set<Int>) -> Set<Int>) {
+
+    }
+
+    func f6(closure: (String, Int, Bool, [String]?, Set<Int>, Void) -> Void) {
+
+    }
+
+    func f7(closure: (String, Int, Bool, [String]?, Set<Int>, Void, [String: String]) -> [String: String]) {
+
+    }
+}

@@ -34,6 +34,31 @@ public struct MethodParameter: Token, Equatable {
     public var isClosure: Bool {        
         return typeWithoutAttributes.hasPrefix("(") && typeWithoutAttributes.range(of: "->") != nil
     }
+
+    public var closureParamCount: Int {
+        // make sure that the parameter is a closure and that it's not just an empty `() -> ...` closure
+        guard isClosure && !"^\\s*\\(\\s*\\)".regexMatches(typeWithoutAttributes) else { return 0 }
+
+        var parenLevel = 0
+        var parameterCount = 1
+        for character in typeWithoutAttributes {
+            switch character {
+            case "(", "<":
+                parenLevel += 1
+            case ")", ">":
+                parenLevel -= 1
+            case ",":
+                parameterCount += parenLevel == 1 ? 1 : 0
+            default:
+                break
+            }
+            if parenLevel == 0 {
+                break
+            }
+        }
+
+        return parameterCount
+    }
     
     public var isEscaping: Bool {
         return isClosure && (type.hasPrefix("@escaping") || type.hasSuffix(")?"))
@@ -54,4 +79,13 @@ public struct MethodParameter: Token, Equatable {
 
 public func ==(lhs: MethodParameter, rhs: MethodParameter) -> Bool {
     return lhs.isEqual(to: rhs)
+}
+
+import Foundation
+
+extension String {
+    func regexMatches(_ source: String) -> Bool {
+        let regex = try! NSRegularExpression(pattern: self)
+        return regex.firstMatch(in: source, range: NSRange(location: 0, length: source.count)) != nil
+    }
 }
