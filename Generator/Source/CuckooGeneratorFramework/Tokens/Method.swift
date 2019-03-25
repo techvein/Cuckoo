@@ -9,7 +9,7 @@
 public protocol Method: Token {
     var name: String { get }
     var accessibility: Accessibility { get }
-    var returnSignature: String { get }
+    var returnSignature: ReturnSignature { get }
     var range: CountableRange<Int> { get }
     var nameRange: CountableRange<Int> { get }
     var parameters: [MethodParameter] { get }
@@ -18,7 +18,6 @@ public protocol Method: Token {
     var hasClosureParams: Bool { get }
     var attributes: [Attribute] { get }
     var genericParameters: [GenericParameter] { get }
-    var whereConstraints: [String] { get }
 }
 
 public extension Method {
@@ -38,26 +37,21 @@ public extension Method {
         let parameterTypes = parameters.map { $0.type }
         let nameParts = name.components(separatedBy: ":")
         let lastNamePart = nameParts.last ?? ""
+
+        let returnSignatureDescription = returnSignature.description
+        let returnSignatureString = returnSignatureDescription.isEmpty ? "" : " \(returnSignatureDescription)"
         
         return zip(nameParts.dropLast(), parameterTypes)
             .map { $0 + ": " + $1 }
-            .joined(separator: ", ") + lastNamePart + returnSignature
+            .joined(separator: ", ") + lastNamePart + returnSignatureString
     }
     
     var isThrowing: Bool {
-        return returnSignature.trimmed.hasPrefix("throws")
+        return returnSignature.isThrowing
     }
     
     var returnType: String {
-        if let range = returnSignature.range(of: "->") {
-            var type = String(returnSignature[range.upperBound...]).trimmed
-            while type.hasSuffix("?") {
-                type = "Optional<\(type[..<type.index(before: type.endIndex)])>"
-            }
-            return type
-        } else {
-            return "Void"
-        }
+        return returnSignature.returnType
     }
     
     var hasClosureParams: Bool {
@@ -109,7 +103,7 @@ public extension Method {
             "self": self,
             "name": rawName,
             "accessibility": accessibility.sourceName,
-            "returnSignature": returnSignature,
+            "returnSignature": returnSignature.description,
             "parameters": parameters,
             "parameterNames": parameters.map { $0.name }.joined(separator: ", "),
             "escapingParameterNames": escapingParameterNames,
@@ -128,7 +122,6 @@ public extension Method {
             "hasClosureParams": hasClosureParams,
             "attributes": attributes.filter { $0.isSupported },
             "genericParameters": isGeneric ? "<\(genericParametersString)>" : "",
-            "whereClause": whereConstraints.isEmpty ? "" : "where \(whereConstraints.joined(separator: ", "))"
         ]
     }
 }
